@@ -1,0 +1,256 @@
+/* =============================================
+   Islamic Minimal Theme for Streamlit
+   File: style_islamic.css
+   Author: ChatGPT (Code_Quran project)
+   Notes:
+   - Keep this file light. Avoid heavy shadows/animations.
+   - Works with RTL and Arabic fonts.
+   ============================================= */
+
+/* ---------- Root palette ---------- */
+:root {
+  --main-green: #006B3C;
+  /* Dark green */
+  --accent-gold: #C2A676;
+  /* Soft gold */
+  --light-bg: #F8F9F4;
+  /* Light warm background */
+  --card-bg: #FFFFFF;
+  /* Card background */
+  --dark-text: #222222;
+  --muted-text: #5E5E5E;
+  --line: #E6E2D9;
+}
+
+/* ---------- Base ---------- */
+html,
+body {
+  background-color: var(--light-bg) !important;
+  color: var(--dark-text);
+  font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle geometric background using inline SVG (very light) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23006B3C' stroke-width='0.8'%3E%3Cpath d='M80 0 L160 80 L80 160 L0 80 Z'/%3E%3Cpath d='M40 0 L120 80 L40 160 L-40 80 Z'/%3E%3Cpath d='M120 0 L200 80 L120 160 L40 80 Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  z-index: -1;
+}
+
+/* ---------- Headings ---------- */
+h1,
+h2,
+h3 {
+  color: var(--main-green) !important;
+  border-bottom: 2px solid var(--accent-gold);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+/* ---------- Links ---------- */
+a,
+.css-zt5igj a {
+  color: var(--main-green);
+}
+
+a:hover,
+.css-zt5igj a:hover {
+  color: #00994C;
+}
+
+/* ---------- Streamlit buttons ---------- */
+div.stButton>button {
+  background-color: var(--main-green);
+  color: #fff;
+  border: 1px solid var(--main-green);
+  border-radius: 12px;
+  padding: 0.45rem 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+}
+
+div.stButton>button:hover {
+  background-color: #00994C;
+  border-color: #00994C;
+}
+
+/* Small outline variant */
+button[kind="secondary"] {
+  background-color: #ffffff !important;
+  color: var(--main-green) !important;
+  border: 1px solid var(--main-green) !important;
+}
+
+/* ---------- Inputs ---------- */
+input,
+textarea,
+select,
+.stTextInput input,
+.stSelectbox select,
+.stDateInput input {
+  border: 1px solid var(--accent-gold) !important;
+  border-radius: 10px !important;
+}
+
+/* ---------- Cards / Containers ---------- */
+.islamic-card {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 8px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Gold divider */
+.hr-gold {
+  height: 2px;
+  border: none;
+  background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  margin: 12px 0;
+}
+
+/* ---------- Sidebar ---------- */
+section[data-testid="stSidebar"] {
+  background: linear-gradient(180deg, rgba(248, 249, 244, 1) 0%, rgba(255, 255, 255, 1) 70%);
+  border-inline-end: 1px solid var(--line);
+}
+
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {
+  border-bottom: none;
+}
+
+/* ---------- Tables / DataFrames ---------- */
+.stDataFrame,
+.stTable {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.stDataFrame table thead th {
+  background: #FAF9F5 !important;
+  color: var(--dark-text) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+.stDataFrame table tbody tr:nth-child(even) td {
+  background: #FCFCF9;
+}
+
+/* ---------- Small utilities ---------- */
+.text-muted {
+  color: var(--muted-text) !important;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--accent-gold);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+/* ---------- Heart (SVG) suggestions ---------- */
+.svg-heart .sector {
+  transition: opacity .2s ease, transform .2s ease;
+  stroke: var(--accent-gold);
+}
+
+.svg-heart .sector:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.svg-heart .label {
+  fill: var(--main-green);
+  font-family: "Amiri", serif;
+  font-size: 12px;
+}
+
+/* ---------- Gentle transitions ---------- */
+* {
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+
+/* =======================================================
+   🌿 خلفية إسلامية ذهبية مضمونة لجميع إصدارات Streamlit
+   ======================================================= */
+
+/* =======================================================
+   🌿 خلفية إسلامية ذهبية متناسقة مع Streamlit
+   تعمل في جميع الإصدارات وتظهر داخل واجهة التطبيق
+   ======================================================= */
+
+/* الخلفية الأساسية بدرجة ورق المصحف */
+[data-testid="stAppViewContainer"] {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'><defs><pattern id='goldFlowerPattern' patternUnits='userSpaceOnUse' width='200' height='200'><g transform='translate(100,100)'><circle r='90' fill='none' stroke='%23C7A45D' stroke-width='0.5'/><g stroke='%23C7A45D' stroke-width='1.2' fill='none' stroke-linecap='round'><polygon points='0,-80 23,-23 80,0 23,23 0,80 -23,23 -80,0 -23,-23'/><polygon points='0,-60 17,-17 60,0 17,17 0,60 -17,17 -60,0 -17,-17'/><polygon points='0,-40 11,-11 40,0 11,11 0,40 -11,11 -40,0 -11,-11'/></g><circle r='6' fill='%23C7A45D'/></g></pattern></defs><rect width='100%' height='100%' fill='white'/><rect width='100%' height='100%' fill='url(%23goldFlowerPattern)' opacity='0.1'/></svg>");
+  background-blend-mode: lighten;
+  background-size: 260px 260px;
+  font-family: "Amiri", "Scheherazade New", serif;
+}
+
+/* إصلاح الخلفية الجانبية (sidebar) لتكمل المشهد */
+section[data-testid="stSidebar"] {
+  background: linear-gradient(180deg, #f9f8f5 0%, #fff 100%) !important;
+  border-inline-end: 1px solid #e6e2d9;
+  background: linear-gradient(0deg, #065e2a3c 1%, #fffdf824 100%) !important;
+
+}
+
+/* =========================================
+   🎨 تحسين مظهر شريط التبويبات العلوي
+   ========================================= */
+
+/* الحاوية التي تحتوي على تبويبات الصفحات */
+div[data-baseweb="tab-list"] {
+  background-color: #fff !important;
+  /* خلفية بيضاء صافية */
+  border-top: 2px solid #C7A45D;
+  /* خط علوي ذهبي */
+  border-bottom: 2px solid #C7A45D;
+  /* خط سفلي ذهبي */
+  padding: 6px 10px !important;
+  border-radius: 8px;
+}
+
+/* كل تبويب (النصوص + الأيقونات) */
+div[data-baseweb="tab"] {
+  font-size: 18px !important;
+  /* تكبير النص */
+  font-weight: 600 !important;
+  color: #222 !important;
+  padding: 6px 18px !important;
+}
+
+/* عند التمرير hover */
+div[data-baseweb="tab"]:hover {
+  background-color: #f7f7f7 !important;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+/* التبويب النشط */
+div[data-baseweb="tab"][aria-selected="true"] {
+  color: #006B3C !important;
+  /* أخضر */
+  border-bottom: 3px solid #dc3545 !important;
+  /* الخط الأحمر السفلي (كما في الصورة) */
+  background-color: #fff !important;
+}
+
+/* تعديل حجم الإيموجي داخل التبويبات */
+div[data-baseweb="tab"] span {
+  font-size: 20px !important;
+  margin-right: 4px;
+}

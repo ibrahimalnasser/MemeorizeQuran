@@ -1,0 +1,37 @@
+
+/* =============================================
+   Variant 2: Quranic Paper Ornate Gold
+   Warm parchment tone with subtle gold ornament texture
+   ============================================= */
+:root {
+  --main-green: #0B5C3E;
+  --accent-gold: #C7A45D;
+  --paper-bg: #FAF7EE;
+  --dark-text: #222;
+}
+
+body {
+  background: linear-gradient(180deg, #FAF7EE 0%, #FFFDF8 100%);
+  color: var(--dark-text);
+  font-family: "Amiri", "Scheherazade New", serif;
+  background-attachment: fixed;
+}
+
+/* Ornate Quranic pattern */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg width='220' height='220' viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23C7A45D' stroke-width='0.4' opacity='0.4'%3E%3Cpath d='M110 0L220 110L110 220L0 110Z'/%3E%3Cpath d='M55 0L165 110L55 220L-55 110Z'/%3E%3Ccircle cx='110' cy='110' r='40'/%3E%3Ccircle cx='110' cy='110' r='70'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 280px 280px;
+  z-index: -1;
+}
+
+/* Headings and accents */
+h1, h2, h3 {
+  color: var(--main-green);
+  border-bottom: 2px solid var(--accent-gold);
+  padding-bottom: 0.25rem;
+}

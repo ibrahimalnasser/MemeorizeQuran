@@ -1,0 +1,32 @@
+# ملاحظة: هذا الملف لن يعمل مع Streamlit على الاستضافة المشتركة
+# Streamlit يحتاج إلى VPS أو استضافة سحابية متخصصة
+
+# إذا كنت تستخدم VPS مع Apache كـ Reverse Proxy:
+# RewriteEngine On
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d
+# RewriteRule ^(.*)$ http://localhost:8501/$1 [P,L]
+# ProxyPass / http://localhost:8501/
+# ProxyPassReverse / http://localhost:8501/
+
+# للأمان
+Options -Indexes
+ServerSignature Off
+
+# حماية ملفات قاعدة البيانات
+<FilesMatch "\.(db|sqlite|sqlite3)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# حماية ملفات Python
+<FilesMatch "\.(py|pyc|pyo)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# السماح بملفات CSS و PNG و SVG
+<FilesMatch "\.(css|png|svg|jpg|jpeg|gif|ico)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
