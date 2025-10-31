@@ -112,11 +112,12 @@ def main():
         st.warning(f"⚠️ ملف CSS غير موجود: {css_path}")
 
     # تهيئة قاعدة البيانات وبنية المدارس
-    from core.db import ensure_admin_password_column, ensure_teacher_password_column
+    from core.db import ensure_admin_password_column, ensure_teacher_password_column, ensure_goals_columns
     init_db()
     ensure_multischool()
     ensure_admin_password_column()
     ensure_teacher_password_column()
+    ensure_goals_columns()
 
     # رأس الصفحة العام
     header()

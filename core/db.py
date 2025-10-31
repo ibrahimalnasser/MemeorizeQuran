@@ -95,6 +95,26 @@ def ensure_teacher_password_column():
                 "ALTER TABLE teachers ADD COLUMN password TEXT DEFAULT '123456'")
             conn.commit()
 
+
+def ensure_goals_columns():
+    """يضيف الأعمدة المفقودة إلى جدول الأهداف (goal_type, target, period)"""
+    from contextlib import closing
+    if not _table_exists("goals"):
+        return
+    with closing(get_conn()) as conn:
+        c = conn.cursor()
+        c.execute("PRAGMA table_info(goals)")
+        cols = [r[1] for r in c.fetchall()]
+
+        if "goal_type" not in cols:
+            c.execute("ALTER TABLE goals ADD COLUMN goal_type TEXT")
+        if "target" not in cols:
+            c.execute("ALTER TABLE goals ADD COLUMN target INTEGER")
+        if "period" not in cols:
+            c.execute("ALTER TABLE goals ADD COLUMN period TEXT")
+
+        conn.commit()
+
 # =========================================================
 # إنشاء الجداول الأساسية
 # =========================================================
@@ -219,7 +239,10 @@ def init_db():
             end_date TEXT,
             status TEXT,
             achieved_at TEXT,
-            note TEXT
+            note TEXT,
+            goal_type TEXT,
+            target INTEGER,
+            period TEXT
         )
         """)
 
