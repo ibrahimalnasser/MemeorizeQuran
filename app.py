@@ -107,10 +107,11 @@ def main():
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     # تهيئة قاعدة البيانات وبنية المدارس
-    from core.db import ensure_admin_password_column
+    from core.db import ensure_admin_password_column, ensure_teacher_password_column
     init_db()
     ensure_multischool()
     ensure_admin_password_column()
+    ensure_teacher_password_column()
 
     # رأس الصفحة العام
     header()

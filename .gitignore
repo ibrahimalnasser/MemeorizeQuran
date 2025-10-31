@@ -23,11 +23,11 @@ wheels/
 .installed.cfg
 *.egg
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Database - allow hifz.db but ignore backups
 hifz_BackUp_*.db
+*.bak.db
+# Don't ignore the main database file - it needs to be deployed
+# !hifz.db
 
 # Streamlit
 .streamlit/secrets.toml

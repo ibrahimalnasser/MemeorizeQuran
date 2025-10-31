@@ -80,6 +80,21 @@ def ensure_admin_password_column():
                 "ALTER TABLE schools ADD COLUMN admin_password TEXT DEFAULT '0000'")
             conn.commit()
 
+
+def ensure_teacher_password_column():
+    """يضيف عمود كلمة المرور إلى جدول المعلمين إن لم يكن موجودًا"""
+    from contextlib import closing
+    if not _table_exists("teachers"):
+        return
+    with closing(get_conn()) as conn:
+        c = conn.cursor()
+        c.execute("PRAGMA table_info(teachers)")
+        cols = [r[1] for r in c.fetchall()]
+        if "password" not in cols:
+            c.execute(
+                "ALTER TABLE teachers ADD COLUMN password TEXT DEFAULT '123456'")
+            conn.commit()
+
 # =========================================================
 # إنشاء الجداول الأساسية
 # =========================================================
@@ -126,6 +141,7 @@ def init_db():
             email TEXT,
             memorization_note TEXT,
             is_mujaz INTEGER DEFAULT 0,
+            password TEXT DEFAULT '123456',
             school_id INTEGER
         )
         """)
