@@ -7,6 +7,7 @@ app.py
 """
 
 import streamlit as st
+from pathlib import Path
 from core.db import init_db, ensure_multischool, authenticate_user, authenticate_visitor, get_school_name
 from ui.pages import (
     header,
@@ -103,8 +104,12 @@ def main():
     """, unsafe_allow_html=True)
 
     # 2) تحميل ملف CSS (حدّث المسار لو وضعته بمجلد آخر)
-    with open("style_islamic.css", "r", encoding="utf-8") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    css_path = Path(__file__).parent / "style_islamic.css"
+    if css_path.exists():
+        with open(css_path, "r", encoding="utf-8") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    else:
+        st.warning(f"⚠️ ملف CSS غير موجود: {css_path}")
 
     # تهيئة قاعدة البيانات وبنية المدارس
     from core.db import ensure_admin_password_column, ensure_teacher_password_column
