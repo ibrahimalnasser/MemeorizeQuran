@@ -75,6 +75,7 @@ def _clear_modal_query_params(keep_sid: Optional[int] = None):
 
 
 def _arm_dialog_from_query():
+    """تحقق من معاملات الرابط واضبط علم فتح الحوار."""
     qp = st.query_params
     if qp.get("dlg") and qp.get("seg"):
         dlg = qp.get("dlg")
@@ -82,7 +83,10 @@ def _arm_dialog_from_query():
             seg = int(qp.get("seg"))
         except Exception:
             return
-        st.session_state["pending_dialog"] = (dlg, seg)
+        # اضبط علم الحوار في session_state
+        st.session_state["dialog_mode"] = dlg
+        st.session_state["dialog_seg"] = seg
+        st.session_state["show_dialog"] = True
 
 
 # ================================
@@ -641,9 +645,18 @@ def page_main():
             st.info("اختر وضع العرض المطلوب.")
 
     # ---------- فتح الحوارات الناتجة عن النقر ----------
-    pending = st.session_state.pop("pending_dialog", None)
-    if pending:
-        dlg, seg = pending
+    if st.session_state.get("show_dialog", False):
+        dlg = st.session_state.get("dialog_mode")
+        seg = st.session_state.get("dialog_seg")
+
+        # مسح علم الحوار لتجنب فتحه مرة أخرى
+        st.session_state["show_dialog"] = False
+
+        # مسح معاملات الرابط لتنظيف الرابط
+        st.query_params.clear()
+        st.query_params.update({"page": "main", "sid": str(sid)})
+
+        # فتح الحوار المناسب
         if dlg == "surah":
             open_surah_dialog(sid, seg)
         else:
