@@ -56,7 +56,6 @@ from core.models import (
 )
 
 from ui.heart import make_heart_svg
-from ui.interactive_heart import render_interactive_heart
 
 
 # ================================
@@ -415,20 +414,6 @@ def page_main():
     st.caption(
         "يمكنك الآن استعراض الحفظ عبر القلب التفاعلي أو إضافة أهداف ومكافآت من الأسفل.")
 
-    # ---------- فتح الحوارات الناتجة عن النقر (يجب أن يكون قبل الحوارات) ----------
-    if st.session_state.get("show_dialog", False):
-        dlg = st.session_state.get("dialog_mode")
-        seg = st.session_state.get("dialog_seg")
-
-        # مسح علم الحوار لتجنب فتحه مرة أخرى
-        st.session_state["show_dialog"] = False
-
-        # فتح الحوار المناسب
-        if dlg == "surah":
-            open_surah_dialog(sid, seg)
-        elif dlg == "juz":
-            open_juz_dialog(sid, seg)
-
     # ---------- إعدادات عرض القلب ----------
     with st.expander("❤️ القلب التفاعلي (الإعدادات + الرسم)", expanded=True):
         left, right = st.columns([3, 2])
@@ -561,19 +546,19 @@ def page_main():
                     {"id": surah_no, "sid": surah_no, "label": surah_no, "title": title,
                      "ratio": float(ratios[i]), "weight": float(max(1, weights[i])), "has_goal": has_goal}
                 )
+            # عرض القلب بدون تفاعلية (للعرض فقط)
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
+                                 label_position=label_position, label_density=label_density, use_interactive=False)
+            st.markdown(svg, unsafe_allow_html=True)
 
-            # تصحيح: عرض البيانات للتشخيص
-            if click_data is not None:
-                st.write(f"DEBUG: click_data = {click_data}, type = {type(click_data)}")
-
-            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
-                st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data["mode"]
-                st.session_state["dialog_seg"] = click_data["seg"]
-                st.rerun()
+            # أزرار للنقر على السور
+            st.markdown("### 📝 اختر سورة لتسجيل الحفظ:")
+            cols = st.columns(6)
+            for i in range(114):
+                surah_no = i + 1
+                with cols[i % 6]:
+                    if st.button(f"{surah_no}", key=f"btn_surah_{surah_no}", use_container_width=True):
+                        open_surah_dialog(sid, surah_no)
 
         elif mode == "حسب الأجزاء (30)":
             ratios = progress_by_juz(sid)
@@ -617,14 +602,19 @@ def page_main():
                 segs.append({"id": jnum, "label": jnum, "title": title,
                             "ratio": float(ratios[i]), "weight": 1.0, "has_goal": has_goal})
 
+            # عرض القلب بدون تفاعلية (للعرض فقط)
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
-            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
-                st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data["mode"]
-                st.session_state["dialog_seg"] = click_data["seg"]
-                st.rerun()
+                                 label_position=label_position, label_density=label_density, use_interactive=False)
+            st.markdown(svg, unsafe_allow_html=True)
+
+            # أزرار للنقر على الأجزاء
+            st.markdown("### 📝 اختر جزءاً لتسجيل الحفظ:")
+            cols = st.columns(6)
+            for i in range(30):
+                jnum = i + 1
+                with cols[i % 6]:
+                    if st.button(f"جزء {jnum}", key=f"btn_juz_{jnum}", use_container_width=True):
+                        open_juz_dialog(sid, jnum)
 
         elif mode == "جزء معيّن (صفحات)":
             refs = get_juz_refs()
@@ -643,14 +633,15 @@ def page_main():
                 segs.append({"id": jnum, "label": rel,
                             "title": title, "ratio": is_mem, "weight": 1.0, "has_goal": has_goal})
 
+            # عرض القلب بدون تفاعلية (للعرض فقط)
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
-            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
-                st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data["mode"]
-                st.session_state["dialog_seg"] = click_data["seg"]
-                st.rerun()
+                                 label_position=label_position, label_density=label_density, use_interactive=False)
+            st.markdown(svg, unsafe_allow_html=True)
+
+            # زر لتسجيل صفحات هذا الجزء
+            st.markdown(f"### 📝 تسجيل صفحات الجزء {jnum}:")
+            if st.button(f"تسجيل صفحات الجزء {jnum}", key=f"btn_juz_pages_{jnum}", use_container_width=True):
+                open_juz_dialog(sid, jnum)
 
         elif mode == "سورة معيّنة (آيات)":
             sur_refs = get_surah_refs()
@@ -673,14 +664,15 @@ def page_main():
                      "ratio": 1.0 if a in mem_set else 0.0, "weight": 1.0, "has_goal": has_goal}
                 )
 
+            # عرض القلب بدون تفاعلية (للعرض فقط)
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
-            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
-                st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data["mode"]
-                st.session_state["dialog_seg"] = click_data["seg"]
-                st.rerun()
+                                 label_position=label_position, label_density=label_density, use_interactive=False)
+            st.markdown(svg, unsafe_allow_html=True)
+
+            # زر لتسجيل آيات هذه السورة
+            st.markdown(f"### 📝 تسجيل آيات سورة {sname}:")
+            if st.button(f"تسجيل آيات سورة {sname}", key=f"btn_surah_ayahs_{surah_no}", use_container_width=True):
+                open_surah_dialog(sid, surah_no)
         else:
             st.info("اختر وضع العرض المطلوب.")
 
