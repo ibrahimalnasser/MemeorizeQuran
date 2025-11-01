@@ -549,7 +549,7 @@ def page_main():
                 )
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
+            click_data = render_interactive_heart(svg, height=600, key="heart_surahs")
             if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
                 st.session_state["dialog_mode"] = click_data["mode"]
@@ -600,7 +600,7 @@ def page_main():
 
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
+            click_data = render_interactive_heart(svg, height=600, key="heart_ajzaa")
             if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
                 st.session_state["dialog_mode"] = click_data["mode"]
@@ -626,7 +626,7 @@ def page_main():
 
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
+            click_data = render_interactive_heart(svg, height=600, key="heart_juz_one")
             if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
                 st.session_state["dialog_mode"] = click_data["mode"]
@@ -656,7 +656,7 @@ def page_main():
 
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
+            click_data = render_interactive_heart(svg, height=600, key="heart_surah_one")
             if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
                 st.session_state["dialog_mode"] = click_data["mode"]

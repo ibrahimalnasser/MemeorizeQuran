@@ -8,13 +8,14 @@ ui/interactive_heart.py
 import streamlit.components.v1 as components
 
 
-def render_interactive_heart(svg_content: str, height: int = 600) -> dict:
+def render_interactive_heart(svg_content: str, height: int = 600, key: str = "heart") -> dict:
     """
     يعرض القلب كمكون تفاعلي يرسل أحداث النقر إلى Streamlit بدون إعادة تحميل الصفحة.
 
     Args:
         svg_content: محتوى SVG الذي تم إنشاؤه بواسطة make_heart_svg
         height: ارتفاع المكون بالبكسل
+        key: مفتاح فريد للمكون
 
     Returns:
         dict: معلومات النقر (mode, seg) أو None
@@ -40,17 +41,21 @@ def render_interactive_heart(svg_content: str, height: int = 600) -> dict:
                     const mode = target.getAttribute('data-mode');
                     const seg = target.getAttribute('data-seg');
                     if (mode && seg) {{
+                        console.log('Heart clicked:', mode, seg);
                         // إرسال البيانات إلى Streamlit
                         window.parent.postMessage({{
                             type: 'streamlit:setComponentValue',
-                            data: {{ mode: mode, seg: parseInt(seg) }}
+                            value: {{ mode: mode, seg: parseInt(seg) }}
                         }}, '*');
                     }}
                 }}
             }});
+
+            // تأكيد أن المكون جاهز
+            console.log('Interactive heart loaded');
         </script>
     </body>
     </html>
     """
 
-    return components.html(html_content, height=height, scrolling=False)
+    return components.html(html_content, height=height, scrolling=False, key=key)
