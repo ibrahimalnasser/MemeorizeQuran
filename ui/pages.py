@@ -550,10 +550,10 @@ def page_main():
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
             click_data = render_interactive_heart(svg, height=600)
-            if click_data:
+            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data.get("mode")
-                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.session_state["dialog_mode"] = click_data["mode"]
+                st.session_state["dialog_seg"] = click_data["seg"]
                 st.rerun()
 
         elif mode == "حسب الأجزاء (30)":
@@ -601,10 +601,10 @@ def page_main():
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
             click_data = render_interactive_heart(svg, height=600)
-            if click_data:
+            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data.get("mode")
-                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.session_state["dialog_mode"] = click_data["mode"]
+                st.session_state["dialog_seg"] = click_data["seg"]
                 st.rerun()
 
         elif mode == "جزء معيّن (صفحات)":
@@ -627,10 +627,10 @@ def page_main():
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
             click_data = render_interactive_heart(svg, height=600)
-            if click_data:
+            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data.get("mode")
-                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.session_state["dialog_mode"] = click_data["mode"]
+                st.session_state["dialog_seg"] = click_data["seg"]
                 st.rerun()
 
         elif mode == "سورة معيّنة (آيات)":
@@ -657,10 +657,10 @@ def page_main():
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
             click_data = render_interactive_heart(svg, height=600)
-            if click_data:
+            if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
-                st.session_state["dialog_mode"] = click_data.get("mode")
-                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.session_state["dialog_mode"] = click_data["mode"]
+                st.session_state["dialog_seg"] = click_data["seg"]
                 st.rerun()
         else:
             st.info("اختر وضع العرض المطلوب.")
