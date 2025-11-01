@@ -414,6 +414,23 @@ def page_main():
     st.caption(
         "يمكنك الآن استعراض الحفظ عبر القلب التفاعلي أو إضافة أهداف ومكافآت من الأسفل.")
 
+    # ---------- فتح الحوارات الناتجة عن النقر على القلب ----------
+    qp = st.query_params
+    if qp.get("dlg") and qp.get("seg"):
+        dlg = qp.get("dlg")
+        try:
+            seg = int(qp.get("seg"))
+            # مسح معاملات الرابط
+            st.query_params.clear()
+            st.query_params.update({"page": "main", "sid": str(sid)})
+            # فتح الحوار المناسب
+            if dlg == "surah":
+                open_surah_dialog(sid, seg)
+            elif dlg == "juz":
+                open_juz_dialog(sid, seg)
+        except Exception:
+            pass
+
     # ---------- إعدادات عرض القلب ----------
     with st.expander("❤️ القلب التفاعلي (الإعدادات + الرسم)", expanded=True):
         left, right = st.columns([3, 2])
@@ -546,19 +563,10 @@ def page_main():
                     {"id": surah_no, "sid": surah_no, "label": surah_no, "title": title,
                      "ratio": float(ratios[i]), "weight": float(max(1, weights[i])), "has_goal": has_goal}
                 )
-            # عرض القلب بدون تفاعلية (للعرض فقط)
+            # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=False)
             st.markdown(svg, unsafe_allow_html=True)
-
-            # أزرار للنقر على السور
-            st.markdown("### 📝 اختر سورة لتسجيل الحفظ:")
-            cols = st.columns(6)
-            for i in range(114):
-                surah_no = i + 1
-                with cols[i % 6]:
-                    if st.button(f"{surah_no}", key=f"btn_surah_{surah_no}", use_container_width=True):
-                        open_surah_dialog(sid, surah_no)
 
         elif mode == "حسب الأجزاء (30)":
             ratios = progress_by_juz(sid)
@@ -602,19 +610,10 @@ def page_main():
                 segs.append({"id": jnum, "label": jnum, "title": title,
                             "ratio": float(ratios[i]), "weight": 1.0, "has_goal": has_goal})
 
-            # عرض القلب بدون تفاعلية (للعرض فقط)
+            # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=False)
             st.markdown(svg, unsafe_allow_html=True)
-
-            # أزرار للنقر على الأجزاء
-            st.markdown("### 📝 اختر جزءاً لتسجيل الحفظ:")
-            cols = st.columns(6)
-            for i in range(30):
-                jnum = i + 1
-                with cols[i % 6]:
-                    if st.button(f"جزء {jnum}", key=f"btn_juz_{jnum}", use_container_width=True):
-                        open_juz_dialog(sid, jnum)
 
         elif mode == "جزء معيّن (صفحات)":
             refs = get_juz_refs()
@@ -633,15 +632,10 @@ def page_main():
                 segs.append({"id": jnum, "label": rel,
                             "title": title, "ratio": is_mem, "weight": 1.0, "has_goal": has_goal})
 
-            # عرض القلب بدون تفاعلية (للعرض فقط)
+            # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=False)
             st.markdown(svg, unsafe_allow_html=True)
-
-            # زر لتسجيل صفحات هذا الجزء
-            st.markdown(f"### 📝 تسجيل صفحات الجزء {jnum}:")
-            if st.button(f"تسجيل صفحات الجزء {jnum}", key=f"btn_juz_pages_{jnum}", use_container_width=True):
-                open_juz_dialog(sid, jnum)
 
         elif mode == "سورة معيّنة (آيات)":
             sur_refs = get_surah_refs()
@@ -664,15 +658,10 @@ def page_main():
                      "ratio": 1.0 if a in mem_set else 0.0, "weight": 1.0, "has_goal": has_goal}
                 )
 
-            # عرض القلب بدون تفاعلية (للعرض فقط)
+            # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=False)
             st.markdown(svg, unsafe_allow_html=True)
-
-            # زر لتسجيل آيات هذه السورة
-            st.markdown(f"### 📝 تسجيل آيات سورة {sname}:")
-            if st.button(f"تسجيل آيات سورة {sname}", key=f"btn_surah_ayahs_{surah_no}", use_container_width=True):
-                open_surah_dialog(sid, surah_no)
         else:
             st.info("اختر وضع العرض المطلوب.")
 
