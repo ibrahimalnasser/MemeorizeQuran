@@ -430,7 +430,7 @@ def page_main():
             open_juz_dialog(sid, seg)
 
     # ---------- إعدادات عرض القلب ----------
-    with st.expander("❤️ القلب التفاعلي (الإعدادات + الرسم)", expanded=False):
+    with st.expander("❤️ القلب التفاعلي (الإعدادات + الرسم)", expanded=True):
         left, right = st.columns([3, 2])
 
         with left:
@@ -564,6 +564,11 @@ def page_main():
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
             click_data = render_interactive_heart(svg, height=600)
+
+            # تصحيح: عرض البيانات للتشخيص
+            if click_data is not None:
+                st.write(f"DEBUG: click_data = {click_data}, type = {type(click_data)}")
+
             if isinstance(click_data, dict) and "mode" in click_data and "seg" in click_data:
                 st.session_state["show_dialog"] = True
                 st.session_state["dialog_mode"] = click_data["mode"]
