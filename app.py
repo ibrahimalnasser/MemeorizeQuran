@@ -50,19 +50,6 @@ def login_page():
                     "school_id": sid,
                     "username": uname,
                 })
-                # حفظ بيانات الجلسة في sessionStorage للاستمرارية
-                save_session_js = f"""
-                <script>
-                    sessionStorage.setItem('streamlit_auth', JSON.stringify({{
-                        user_id: {uid},
-                        user_role: '{role}',
-                        user_rel_id: {rel_id if rel_id else 'null'},
-                        school_id: {sid if sid else 'null'},
-                        username: '{uname}'
-                    }}));
-                </script>
-                """
-                st.markdown(save_session_js, unsafe_allow_html=True)
                 school_label = get_school_name(sid) if sid else "كل المدارس"
                 st.success(
                     f"مرحبًا {uname} ({role}) — المدرسة: {school_label}")
@@ -81,27 +68,13 @@ def login_page():
             sch = authenticate_visitor(school_name.strip(), vpass.strip())
             if sch:
                 sid, sname = sch
-                uname = f"زائر - {sname}"
                 st.session_state.update({
                     "user_id": None,
                     "user_role": "visitor",
                     "user_rel_id": None,
                     "school_id": sid,
-                    "username": uname,
+                    "username": f"زائر - {sname}",
                 })
-                # حفظ بيانات الجلسة في sessionStorage للاستمرارية
-                save_session_js = f"""
-                <script>
-                    sessionStorage.setItem('streamlit_auth', JSON.stringify({{
-                        user_id: null,
-                        user_role: 'visitor',
-                        user_rel_id: null,
-                        school_id: {sid},
-                        username: '{uname}'
-                    }}));
-                </script>
-                """
-                st.markdown(save_session_js, unsafe_allow_html=True)
                 st.success(f"مرحبًا بزائر مدرسة: {sname}")
                 st.rerun()
             else:
@@ -150,40 +123,8 @@ def main():
     header()
 
     # =====================================================
-    # بيانات الجلسة والدخول + استعادة من sessionStorage
+    # بيانات الجلسة والدخول
     # =====================================================
-
-    # استعادة بيانات الجلسة من sessionStorage إذا لم تكن موجودة في session_state
-    if not st.session_state.get("user_role"):
-        # استخدام مكون HTML لقراءة sessionStorage
-        import streamlit.components.v1 as components
-        restore_html = """
-        <script>
-            const auth = sessionStorage.getItem('streamlit_auth');
-            if (auth) {
-                window.parent.postMessage({type: 'streamlit:setComponentValue', data: auth}, '*');
-            } else {
-                window.parent.postMessage({type: 'streamlit:setComponentValue', data: null}, '*');
-            }
-        </script>
-        """
-        auth_data = components.html(restore_html, height=0)
-
-        if auth_data:
-            try:
-                import json
-                auth_dict = json.loads(auth_data)
-                st.session_state.update({
-                    "user_id": auth_dict.get("user_id"),
-                    "user_role": auth_dict.get("user_role"),
-                    "user_rel_id": auth_dict.get("user_rel_id"),
-                    "school_id": auth_dict.get("school_id"),
-                    "username": auth_dict.get("username"),
-                })
-                st.rerun()
-            except Exception:
-                pass
-
     role = st.session_state.get("user_role", None)
     sid = st.session_state.get("school_id", None)
     uname = st.session_state.get("username", "مستخدم")
@@ -202,13 +143,6 @@ def main():
         st.caption(f"الدور: **{role}** — المدرسة: **{school_label}**")
 
         if st.button("🔒 تسجيل الخروج"):
-            # مسح sessionStorage عند الخروج
-            clear_session_js = """
-            <script>
-                sessionStorage.removeItem('streamlit_auth');
-            </script>
-            """
-            st.markdown(clear_session_js, unsafe_allow_html=True)
             st.session_state.clear()
             st.rerun()
 

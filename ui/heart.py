@@ -38,6 +38,7 @@ def make_heart_svg(
     sid: int = 0,
     label_position: str = "outside",
     label_density: str = "medium",
+    use_interactive: bool = False,
 ) -> str:
     """
     تُنشئ كود SVG الكامل للقلب حسب المعطيات:
@@ -172,12 +173,22 @@ def make_heart_svg(
         start, end = angles[idx]
         seg_id = s.get("id")
         title = s.get("title", "")
-        href = f"?page=main&sid={sid if sid else ''}&dlg={mode}&seg={seg_id}"
-        svg.append(
-            f'<a href="{href}" xlink:href="{href}">'
-            f'<title>{title}</title>'
-            f'<path class="hit" d="{_sector_path(start, end, R)}" fill="rgba(0,0,0,0)"></path></a>'
-        )
+
+        if use_interactive:
+            # استخدام data attributes وJavaScript للتفاعل بدون إعادة تحميل
+            svg.append(
+                f'<path class="hit heart-segment" d="{_sector_path(start, end, R)}" '
+                f'fill="rgba(0,0,0,0)" data-mode="{mode}" data-seg="{seg_id}" '
+                f'style="cursor:pointer;"><title>{title}</title></path>'
+            )
+        else:
+            # استخدام الروابط التقليدية
+            href = f"?page=main&sid={sid if sid else ''}&dlg={mode}&seg={seg_id}"
+            svg.append(
+                f'<a href="{href}" xlink:href="{href}" target="_self">'
+                f'<title>{title}</title>'
+                f'<path class="hit" d="{_sector_path(start, end, R)}" fill="rgba(0,0,0,0)"></path></a>'
+            )
 
     svg.append('</g>')
 
