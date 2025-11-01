@@ -415,6 +415,20 @@ def page_main():
     st.caption(
         "يمكنك الآن استعراض الحفظ عبر القلب التفاعلي أو إضافة أهداف ومكافآت من الأسفل.")
 
+    # ---------- فتح الحوارات الناتجة عن النقر (يجب أن يكون قبل الحوارات) ----------
+    if st.session_state.get("show_dialog", False):
+        dlg = st.session_state.get("dialog_mode")
+        seg = st.session_state.get("dialog_seg")
+
+        # مسح علم الحوار لتجنب فتحه مرة أخرى
+        st.session_state["show_dialog"] = False
+
+        # فتح الحوار المناسب
+        if dlg == "surah":
+            open_surah_dialog(sid, seg)
+        elif dlg == "juz":
+            open_juz_dialog(sid, seg)
+
     # ---------- إعدادات عرض القلب ----------
     with st.expander("❤️ القلب التفاعلي (الإعدادات + الرسم)", expanded=False):
         left, right = st.columns([3, 2])
@@ -664,20 +678,6 @@ def page_main():
                 st.rerun()
         else:
             st.info("اختر وضع العرض المطلوب.")
-
-    # ---------- فتح الحوارات الناتجة عن النقر ----------
-    if st.session_state.get("show_dialog", False):
-        dlg = st.session_state.get("dialog_mode")
-        seg = st.session_state.get("dialog_seg")
-
-        # مسح علم الحوار لتجنب فتحه مرة أخرى
-        st.session_state["show_dialog"] = False
-
-        # فتح الحوار المناسب
-        if dlg == "surah":
-            open_surah_dialog(sid, seg)
-        else:
-            open_juz_dialog(sid, seg)
 
     # ---------- الأهداف ----------
     with st.expander("🎯 أهداف الطالب"):
