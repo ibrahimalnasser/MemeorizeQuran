@@ -146,6 +146,13 @@ def make_heart_svg(
         svg.append(
             f'<path d="{_sector_path(start, end, R)}" fill="{base_fill}" stroke="none"></path>')
 
+    # قطاعات الأهداف (تظهر باللون الذهبي/الأصفر)
+    for idx, s in enumerate(segments):
+        if s.get("has_goal", False):
+            start, end = angles[idx]
+            svg.append(
+                f'<path d="{_sector_path(start, end, R)}" fill="rgba(255, 193, 7, 0.3)" stroke="#FFC107" stroke-width="2"></path>')
+
     # القطاعات المملوءة باللون الأحمر حسب الإنجاز
     for idx, s in enumerate(segments):
         start, end = angles[idx]
@@ -153,8 +160,10 @@ def make_heart_svg(
         if ratio <= 0:
             continue
         end_prog = start + (end - start) * ratio
+        # إذا كان القطاع جزء من هدف ومكتمل، استخدم لون أخضر
+        fill_color = "#22c55e" if s.get("has_goal", False) else "#dc2626"
         svg.append(
-            f'<path d="{_sector_path(start, end_prog, R)}" fill="#dc2626"></path>')
+            f'<path d="{_sector_path(start, end_prog, R)}" fill="{fill_color}"></path>')
 
     # إضافة روابط النقر (عناصر تفاعلية)
     for idx, s in enumerate(segments):

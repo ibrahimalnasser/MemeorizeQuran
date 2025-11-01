@@ -515,6 +515,10 @@ def page_main():
         )
 
         # ---------- رسم القلب حسب الوضع ----------
+        # جلب الأهداف النشطة للطالب
+        from core.models import get_active_goals_map
+        active_goals = get_active_goals_map(sid)
+
         if mode == "حسب السور (114)":
             ratios, weights, names = progress_by_surah(sid)
             merged_ayahs = get_merged_ayahs_for_student(sid)
@@ -528,10 +532,15 @@ def page_main():
                     ayat_part = f"الآيات المحفوظة: {ranges_txt} (المجموع {mem_ayahs})"
                 else:
                     ayat_part = "الآيات المحفوظة: لا يوجد"
-                title = f"{names[i]} (السورة رقم {surah_no}) — {ayat_part} — إنجاز: {percent(ratios[i])}"
+
+                # فحص إذا كانت السورة جزء من هدف نشط
+                has_goal = surah_no in active_goals["surahs"]
+                goal_marker = " 🎯" if has_goal else ""
+
+                title = f"{names[i]} (السورة رقم {surah_no}) — {ayat_part} — إنجاز: {percent(ratios[i])}{goal_marker}"
                 segs.append(
                     {"id": surah_no, "sid": surah_no, "label": surah_no, "title": title,
-                     "ratio": float(ratios[i]), "weight": float(max(1, weights[i]))}
+                     "ratio": float(ratios[i]), "weight": float(max(1, weights[i])), "has_goal": has_goal}
                 )
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density)
@@ -570,9 +579,14 @@ def page_main():
                 saved_pages = [p for p, v in pages_map.items()
                                if v == 1 and sp <= p <= ep]
                 saved_range = page_ranges_str(saved_pages)
-                title = f"الجزء {jnum} — الصفحات {sp}–{ep} — الصفحات المحفوظة: {saved_range} — إنجاز: {percent(ratios[i])}"
+
+                # فحص إذا كان أي صفحة في الجزء جزء من هدف نشط
+                has_goal = any(p in active_goals["pages"] for p in range(sp, ep + 1))
+                goal_marker = " 🎯" if has_goal else ""
+
+                title = f"الجزء {jnum} — الصفحات {sp}–{ep} — الصفحات المحفوظة: {saved_range} — إنجاز: {percent(ratios[i])}{goal_marker}"
                 segs.append({"id": jnum, "label": jnum, "title": title,
-                            "ratio": float(ratios[i]), "weight": 1.0})
+                            "ratio": float(ratios[i]), "weight": 1.0, "has_goal": has_goal})
 
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density)
@@ -589,9 +603,11 @@ def page_main():
             for p in range(sp, ep + 1):
                 rel += 1
                 is_mem = 1.0 if pages_map.get(p) == 1 else 0.0
-                title = f"الجزء {jnum} — الصفحة {p}"
+                has_goal = p in active_goals["pages"]
+                goal_marker = " 🎯" if has_goal else ""
+                title = f"الجزء {jnum} — الصفحة {p}{goal_marker}"
                 segs.append({"id": jnum, "label": rel,
-                            "title": title, "ratio": is_mem, "weight": 1.0})
+                            "title": title, "ratio": is_mem, "weight": 1.0, "has_goal": has_goal})
 
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density)
@@ -607,11 +623,15 @@ def page_main():
             for a, b in merged.get(surah_no, []):
                 mem_set.update(range(a, b + 1))
 
+            # فحص إذا كانت السورة جزء من هدف نشط
+            has_goal = surah_no in active_goals["surahs"]
+
             segs = []
             for a in range(1, ayah_cnt + 1):
+                goal_marker = " 🎯" if has_goal else ""
                 segs.append(
-                    {"id": surah_no, "sid": a, "title": f"{sname} — آية {a}",
-                     "ratio": 1.0 if a in mem_set else 0.0, "weight": 1.0}
+                    {"id": surah_no, "sid": a, "title": f"{sname} — آية {a}{goal_marker}",
+                     "ratio": 1.0 if a in mem_set else 0.0, "weight": 1.0, "has_goal": has_goal}
                 )
 
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,

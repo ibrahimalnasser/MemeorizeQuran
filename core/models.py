@@ -418,6 +418,31 @@ def _goal_status_to_ar(c): return _GOAL_STATUS_AR.get(c, c)
 def _goal_status_from_ar(a): return _GOAL_STATUS_REV.get(a, "pending")
 
 
+def get_active_goals_map(student_id: int) -> Dict[str, set]:
+    """
+    جلب خريطة الأهداف النشطة (pending) للطالب.
+    يعيد قاموس بمفاتيح 'pages' و 'surahs' تحتوي على مجموعات الأرقام المستهدفة.
+    """
+    goals_map = {"pages": set(), "surahs": set()}
+
+    with closing(get_conn()) as conn:
+        c = conn.cursor()
+        c.execute("""
+            SELECT target_kind, page_from, page_to, surah_id
+            FROM goals
+            WHERE student_id=? AND status='pending'
+        """, (student_id,))
+
+        for target_kind, page_from, page_to, surah_id in c.fetchall():
+            if target_kind == "pages" and page_from and page_to:
+                for p in range(page_from, page_to + 1):
+                    goals_map["pages"].add(p)
+            elif target_kind == "ayahs" and surah_id:
+                goals_map["surahs"].add(surah_id)
+
+    return goals_map
+
+
 def auto_check_goals(student_id: int) -> int:
     """
     فحص تلقائي للأهداف وتحديث حالتها بناءً على الحفظ الفعلي.
