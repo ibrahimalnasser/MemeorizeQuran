@@ -174,7 +174,7 @@ def make_heart_svg(
         title = s.get("title", "")
         href = f"?page=main&sid={sid if sid else ''}&dlg={mode}&seg={seg_id}"
         svg.append(
-            f'<a href="{href}" xlink:href="{href}" target="_top">'
+            f'<a href="{href}" xlink:href="{href}">'
             f'<title>{title}</title>'
             f'<path class="hit" d="{_sector_path(start, end, R)}" fill="rgba(0,0,0,0)"></path></a>'
         )
