@@ -417,6 +417,69 @@ _GOAL_STATUS_REV = {v: k for k, v in _GOAL_STATUS_AR.items()}
 def _goal_status_to_ar(c): return _GOAL_STATUS_AR.get(c, c)
 def _goal_status_from_ar(a): return _GOAL_STATUS_REV.get(a, "pending")
 
+
+def auto_check_goals(student_id: int) -> int:
+    """
+    فحص تلقائي للأهداف وتحديث حالتها بناءً على الحفظ الفعلي.
+    يعيد عدد الأهداف التي تم تحديثها.
+    """
+    updated_count = 0
+    with closing(get_conn()) as conn:
+        c = conn.cursor()
+
+        # جلب جميع الأهداف المعلقة (pending)
+        c.execute("""
+            SELECT id, target_kind, page_from, page_to, surah_id, from_ayah, to_ayah
+            FROM goals
+            WHERE student_id=? AND status='pending'
+        """, (student_id,))
+
+        pending_goals = c.fetchall()
+
+        for goal_row in pending_goals:
+            goal_id, target_kind, page_from, page_to, surah_id, from_ayah, to_ayah = goal_row
+            is_achieved = False
+
+            # فحص الأهداف المبنية على الصفحات
+            if target_kind == "pages" and page_from and page_to:
+                c.execute("""
+                    SELECT COUNT(*) FROM student_pages
+                    WHERE student_id=? AND page_number BETWEEN ? AND ? AND is_memorized=1
+                """, (student_id, page_from, page_to))
+                memorized_count = c.fetchone()[0]
+                target_count = page_to - page_from + 1
+                is_achieved = (memorized_count >= target_count)
+
+            # فحص الأهداف المبنية على الآيات
+            elif target_kind == "ayahs" and surah_id and from_ayah and to_ayah:
+                # جلب جميع الآيات المحفوظة للسورة المحددة
+                c.execute("""
+                    SELECT from_ayah, to_ayah FROM student_ayah_ranges
+                    WHERE student_id=? AND surah_id=? AND is_memorized=1
+                """, (student_id, surah_id))
+
+                memorized_ayahs = set()
+                for ayah_from, ayah_to in c.fetchall():
+                    for ayah in range(ayah_from, ayah_to + 1):
+                        memorized_ayahs.add(ayah)
+
+                # فحص إذا كانت جميع الآيات المستهدفة محفوظة
+                target_ayahs = set(range(from_ayah, to_ayah + 1))
+                is_achieved = target_ayahs.issubset(memorized_ayahs)
+
+            # تحديث الهدف إذا تحقق
+            if is_achieved:
+                c.execute("""
+                    UPDATE goals
+                    SET status='done', achieved_at=?
+                    WHERE id=?
+                """, (datetime.now().isoformat(timespec="seconds"), goal_id))
+                updated_count += 1
+
+        conn.commit()
+
+    return updated_count
+
 # =============================
 # دوال مساعدة إضافية
 # =============================

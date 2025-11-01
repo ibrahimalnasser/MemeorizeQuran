@@ -136,7 +136,13 @@ def open_surah_dialog(student_id: int, surah_no: int):
                     st.stop()
                 add_ayah_range(student_id, sel_no, a, b,
                                (op == "إضافة حفظ"), source="manual")
-                st.success(f"تم تسجيل الآيات {a}–{b} من سورة {sel_name}.")
+                # فحص وتحديث الأهداف تلقائيًا
+                from core.models import auto_check_goals
+                goals_updated = auto_check_goals(student_id)
+                msg = f"تم تسجيل الآيات {a}–{b} من سورة {sel_name}."
+                if goals_updated > 0:
+                    msg += f" ✅ تم إنجاز {goals_updated} هدف!"
+                st.success(msg)
                 _clear_modal_query_params(student_id)
                 st.rerun()
 
@@ -179,7 +185,13 @@ def open_juz_dialog(student_id: int, jnum: int):
                 is_add = (op == "إضافة حفظ")
                 for p in range(a, b + 1):
                     upsert_page(student_id, p, is_add)
-                st.success(f"تم تسجيل الصفحات {a}–{b}.")
+                # فحص وتحديث الأهداف تلقائيًا
+                from core.models import auto_check_goals
+                goals_updated = auto_check_goals(student_id)
+                msg = f"تم تسجيل الصفحات {a}–{b}."
+                if goals_updated > 0:
+                    msg += f" ✅ تم إنجاز {goals_updated} هدف!"
+                st.success(msg)
                 _clear_modal_query_params(student_id)
                 st.rerun()
 
@@ -795,6 +807,18 @@ def page_main():
 
         dfG = pd.DataFrame(view)
         if not dfG.empty:
+            # زر الفحص التلقائي للأهداف
+            col_check, col_spacer = st.columns([1, 3])
+            with col_check:
+                if st.button("🔍 فحص الأهداف تلقائيًا", key=f"auto_check_goals_{sid}"):
+                    from core.models import auto_check_goals
+                    updated = auto_check_goals(sid)
+                    if updated > 0:
+                        st.success(f"✅ تم إنجاز {updated} هدف!")
+                        st.rerun()
+                    else:
+                        st.info("لا توجد أهداف جديدة مكتملة.")
+
             edited = st.data_editor(
                 dfG,
                 use_container_width=True,
