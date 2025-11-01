@@ -56,6 +56,7 @@ from core.models import (
 )
 
 from ui.heart import make_heart_svg
+from ui.interactive_heart import render_interactive_heart
 
 
 # ================================
@@ -289,14 +290,14 @@ def page_main():
     st.markdown(
         "<style>.sticky-card{position:sticky;top:72px;}</style>", unsafe_allow_html=True)
 
-    # تثبيت الطالب من رابط الصفحة إن وجد + تهيئة الحوارات من الرابط
+    # تثبيت الطالب من رابط الصفحة إن وجد
     qp = st.query_params
     if qp.get("sid"):
         try:
             st.session_state["main_selected_student_id"] = int(qp.get("sid"))
         except Exception:
             pass
-    _arm_dialog_from_query()
+    # ملاحظة: لم نعد نستخدم روابط HTML، بل مكونات تفاعلية
 
     # ========== البحث + النتائج ==========
     default_open = (not st.session_state.get("selected_student_id")
@@ -547,8 +548,13 @@ def page_main():
                      "ratio": float(ratios[i]), "weight": float(max(1, weights[i])), "has_goal": has_goal}
                 )
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
-                                 label_position=label_position, label_density=label_density)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["show_dialog"] = True
+                st.session_state["dialog_mode"] = click_data.get("mode")
+                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.rerun()
 
         elif mode == "حسب الأجزاء (30)":
             ratios = progress_by_juz(sid)
@@ -593,8 +599,13 @@ def page_main():
                             "ratio": float(ratios[i]), "weight": 1.0, "has_goal": has_goal})
 
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
-                                 label_position=label_position, label_density=label_density)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["show_dialog"] = True
+                st.session_state["dialog_mode"] = click_data.get("mode")
+                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.rerun()
 
         elif mode == "جزء معيّن (صفحات)":
             refs = get_juz_refs()
@@ -614,8 +625,13 @@ def page_main():
                             "title": title, "ratio": is_mem, "weight": 1.0, "has_goal": has_goal})
 
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
-                                 label_position=label_position, label_density=label_density)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["show_dialog"] = True
+                st.session_state["dialog_mode"] = click_data.get("mode")
+                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.rerun()
 
         elif mode == "سورة معيّنة (آيات)":
             sur_refs = get_surah_refs()
@@ -639,8 +655,13 @@ def page_main():
                 )
 
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
-                                 label_position=label_position, label_density=label_density)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["show_dialog"] = True
+                st.session_state["dialog_mode"] = click_data.get("mode")
+                st.session_state["dialog_seg"] = click_data.get("seg")
+                st.rerun()
         else:
             st.info("اختر وضع العرض المطلوب.")
 
@@ -651,10 +672,6 @@ def page_main():
 
         # مسح علم الحوار لتجنب فتحه مرة أخرى
         st.session_state["show_dialog"] = False
-
-        # مسح معاملات الرابط لتنظيف الرابط
-        st.query_params.clear()
-        st.query_params.update({"page": "main", "sid": str(sid)})
 
         # فتح الحوار المناسب
         if dlg == "surah":
