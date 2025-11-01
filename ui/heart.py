@@ -110,7 +110,7 @@ def make_heart_svg(
     bottom_pad = int(
         max(0, (scale - 1.0) * (240 if label_position == "outside" else 180)))
 
-    # تنسيق CSS + JavaScript
+    # تنسيق CSS
     css = f"""
     <style>
       .heart-wrap {{
@@ -127,16 +127,6 @@ def make_heart_svg(
       .heart-wrap .hit {{ cursor:pointer; }}
       .lbl {{ fill:#111; font-family: Tahoma, Arial, sans-serif; pointer-events:none; }}
     </style>
-    <script>
-      function heartClick(mode, seg, sid) {{
-        // تخزين معلومات الحوار في sessionStorage
-        sessionStorage.setItem('pending_dialog_mode', mode);
-        sessionStorage.setItem('pending_dialog_seg', seg);
-        sessionStorage.setItem('pending_dialog_sid', sid);
-        // إعادة تحميل الصفحة لتفعيل الحوار
-        window.location.href = '?page=main&sid=' + sid + '&dlg=' + mode + '&seg=' + seg + '&t=' + Date.now();
-      }}
-    </script>
     """
 
     svg = [
@@ -182,12 +172,11 @@ def make_heart_svg(
         start, end = angles[idx]
         seg_id = s.get("id")
         title = s.get("title", "")
-        # استخدام onclick بدلاً من الروابط لتجنب إعادة تحميل الصفحة
-        onclick = f"heartClick('{mode}', {seg_id}, {sid if sid else 0})"
+        href = f"?page=main&sid={sid if sid else ''}&dlg={mode}&seg={seg_id}"
         svg.append(
-            f'<g onclick="{onclick}" style="cursor:pointer;">'
+            f'<a href="{href}" xlink:href="{href}">'
             f'<title>{title}</title>'
-            f'<path class="hit" d="{_sector_path(start, end, R)}" fill="rgba(0,0,0,0)"></path></g>'
+            f'<path class="hit" d="{_sector_path(start, end, R)}" fill="rgba(0,0,0,0)"></path></a>'
         )
 
     svg.append('</g>')
