@@ -420,7 +420,7 @@ def _goal_status_from_ar(a): return _GOAL_STATUS_REV.get(a, "pending")
 
 def get_active_goals_map(student_id: int) -> Dict[str, set]:
     """
-    جلب خريطة الأهداف (pending و done) للطالب.
+    جلب خريطة الأهداف النشطة (pending فقط) للطالب.
     يعيد قاموس بمفاتيح 'pages' و 'surahs' تحتوي على مجموعات الأرقام المستهدفة.
     """
     goals_map = {"pages": set(), "surahs": set()}
@@ -430,7 +430,7 @@ def get_active_goals_map(student_id: int) -> Dict[str, set]:
         c.execute("""
             SELECT target_kind, page_from, page_to, surah_id
             FROM goals
-            WHERE student_id=? AND status IN ('pending', 'done')
+            WHERE student_id=? AND status='pending'
         """, (student_id,))
 
         for target_kind, page_from, page_to, surah_id in c.fetchall():
