@@ -148,6 +148,7 @@ def open_surah_dialog(student_id: int, surah_no: int):
                 if goals_updated > 0:
                     msg += f" ✅ تم إنجاز {goals_updated} هدف!"
                 st.success(msg)
+                st.balloons()
                 _clear_modal_query_params(student_id)
                 st.rerun()
 
@@ -197,6 +198,7 @@ def open_juz_dialog(student_id: int, jnum: int):
                 if goals_updated > 0:
                     msg += f" ✅ تم إنجاز {goals_updated} هدف!"
                 st.success(msg)
+                st.balloons()
                 _clear_modal_query_params(student_id)
                 st.rerun()
 
@@ -412,8 +414,6 @@ def page_main():
 
     # ❤️ عرض القلب وبقية التفاصيل
     st.markdown("---")
-    st.caption(
-        "يمكنك الآن استعراض الحفظ عبر القلب التفاعلي أو إضافة أهداف ومكافآت من الأسفل.")
 
     # ---------- إعدادات عرض القلب ----------
     with st.expander("❤️ القلب التفاعلي (الإعدادات + الرسم)", expanded=True):
@@ -473,9 +473,9 @@ def page_main():
                 "<div style='text-align:right;'>**التكبير**</div>", unsafe_allow_html=True)
             zoom = st.slider(
                 "التكبير",
-                0.7,
+                0.5,
                 1.6,
-                st.session_state.get("ui_zoom", 1.2),
+                st.session_state.get("ui_zoom", 0.65),
                 0.05,
                 format="%.2f",
                 label_visibility="collapsed",
@@ -496,8 +496,8 @@ def page_main():
             st.session_state.get("ui_label_density", "متوسط")
         ]
 
-        # CSS لوضع القلب خلف عناصر التحكم
-        top_shift = -220 - int(60 * (zoom - 1.0))
+        # CSS لوضع القلب خلف عناصر التحكم - تم تحسين الموضع
+        top_shift =-100
         st.markdown(
             f"""
             <style>
@@ -550,9 +550,7 @@ def page_main():
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
-            if click_data:
-                st.session_state["heart_click"] = click_data
+            render_interactive_heart(svg, height=1000)
 
         elif mode == "حسب الأجزاء (30)":
             ratios = progress_by_juz(sid)
@@ -599,9 +597,7 @@ def page_main():
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
-            if click_data:
-                st.session_state["heart_click"] = click_data
+            render_interactive_heart(svg, height=1000)
 
         elif mode == "جزء معيّن (صفحات)":
             refs = get_juz_refs()
@@ -623,9 +619,7 @@ def page_main():
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
-            if click_data:
-                st.session_state["heart_click"] = click_data
+            render_interactive_heart(svg, height=1000)
 
         elif mode == "سورة معيّنة (آيات)":
             sur_refs = get_surah_refs()
@@ -651,26 +645,49 @@ def page_main():
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
                                  label_position=label_position, label_density=label_density, use_interactive=True)
-            click_data = render_interactive_heart(svg, height=600)
-            if click_data:
-                st.session_state["heart_click"] = click_data
+            render_interactive_heart(svg, height=1000)
         else:
             st.info("اختر وضع العرض المطلوب.")
 
-    # ---------- فتح الحوارات الناتجة عن النقر على القلب ----------
-    # التحقق من النقر التفاعلي (interactive mode)
-    if "heart_click" in st.session_state:
-        click_data = st.session_state.pop("heart_click")
-        try:
-            mode = click_data.get("mode")
-            seg = click_data.get("seg")
-            # فتح الحوار المناسب
-            if mode == "surah":
-                open_surah_dialog(sid, seg)
-            elif mode == "juz":
-                open_juz_dialog(sid, seg)
-        except Exception:
-            pass
+    # ---------- أزرار لإضافة الحفظ ----------
+    st.markdown("---")
+    st.markdown("### ➕ إضافة حفظ جديد")
+    st.info("💡 **افتح القسم أدناه واختر السورة أو الجزء** - ستظهر نافذة منبثقة مباشرة!", icon="✨")
+
+    with st.expander("📖 إضافة حفظ بالسورة", expanded=False):
+        st.caption("اختر السورة لفتح نافذة إضافة الحفظ")
+
+        # إنشاء شبكة من الأزرار للسور
+        surahs_list = get_surah_refs()
+        cols_per_row = 6
+
+        for row_start in range(0, len(surahs_list), cols_per_row):
+            cols = st.columns(cols_per_row)
+            for i, col in enumerate(cols):
+                idx = row_start + i
+                if idx < len(surahs_list):
+                    surah_no, surah_name, ayah_count = surahs_list[idx][0], surahs_list[idx][1], surahs_list[idx][2]
+                    with col:
+                        if st.button(f"{surah_no}. {surah_name}",
+                                   use_container_width=True,
+                                   key=f"quick_surah_{sid}_{surah_no}",
+                                   help=f"{ayah_count} آية"):
+                            open_surah_dialog(sid, surah_no)
+
+    with st.expander("📗 إضافة حفظ بالجزء/الصفحات", expanded=False):
+        st.caption("اختر الجزء لفتح نافذة إضافة الحفظ")
+
+        # إنشاء أزرار للأجزاء
+        juz_refs = get_juz_refs()
+        cols = st.columns(6)
+
+        for i, (juz_num, start_page, end_page) in enumerate(juz_refs):
+            with cols[i % 6]:
+                if st.button(f"جزء {juz_num}",
+                           use_container_width=True,
+                           key=f"quick_juz_{sid}_{juz_num}",
+                           help=f"الصفحات {start_page}-{end_page}"):
+                    open_juz_dialog(sid, juz_num)
 
     # ---------- الأهداف ----------
     with st.expander("🎯 أهداف الطالب"):
