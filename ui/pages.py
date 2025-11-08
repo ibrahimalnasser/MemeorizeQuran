@@ -278,6 +278,10 @@ def generate_printable_report_html(student_id: int) -> tuple[str, bytes]:
 # (تكملة) الصفحة الرئيسية — إعدادات القلب + الرسم + بقية الأقسام
 # ================================
 def page_main():
+    # الحصول على دور المستخدم للتحكم في الصلاحيات
+    user_role = st.session_state.get("user_role", "")
+    is_visitor = (user_role == "visitor")
+
     st.markdown(
         """
         <p style='text-align:center; color:#777; font-size:17px; font-family:"Amiri", "Scheherazade New", serif;'>
@@ -631,15 +635,17 @@ def page_main():
             for a, b in merged.get(surah_no, []):
                 mem_set.update(range(a, b + 1))
 
-            # فحص إذا كانت السورة جزء من هدف نشط
-            has_goal = surah_no in active_goals["surahs"]
+            # فحص إذا كانت السورة جزء من هدف نشط وجلب نطاقات الآيات
+            ayah_ranges = active_goals["surahs"].get(surah_no, [])
 
             segs = []
             for a in range(1, ayah_cnt + 1):
-                goal_marker = " 🎯" if has_goal else ""
+                # فحص إذا كانت الآية ضمن أي نطاق هدف
+                ayah_has_goal = any(from_a <= a <= to_a for from_a, to_a in ayah_ranges)
+                goal_marker = " 🎯" if ayah_has_goal else ""
                 segs.append(
                     {"id": surah_no, "sid": a, "title": f"{sname} — آية {a}{goal_marker}",
-                     "ratio": 1.0 if a in mem_set else 0.0, "weight": 1.0, "has_goal": has_goal}
+                     "ratio": 1.0 if a in mem_set else 0.0, "weight": 1.0, "has_goal": ayah_has_goal}
                 )
 
             # عرض القلب مع روابط قابلة للنقر
@@ -650,172 +656,174 @@ def page_main():
             st.info("اختر وضع العرض المطلوب.")
 
     # ---------- أزرار لإضافة الحفظ ----------
-    st.markdown("---")
-    st.markdown("### ➕ إضافة حفظ جديد")
-    st.info("💡 **افتح القسم أدناه واختر السورة أو الجزء** - ستظهر نافذة منبثقة مباشرة!", icon="✨")
+    if not is_visitor:
+        st.markdown("---")
+        st.markdown("### ➕ إضافة حفظ جديد")
+        st.info("💡 **افتح القسم أدناه واختر السورة أو الجزء** - ستظهر نافذة منبثقة مباشرة!", icon="✨")
 
-    with st.expander("📖 إضافة حفظ بالسورة", expanded=False):
-        st.caption("اختر السورة لفتح نافذة إضافة الحفظ")
+        with st.expander("📖 إضافة حفظ بالسورة", expanded=False):
+            st.caption("اختر السورة لفتح نافذة إضافة الحفظ")
 
-        # إنشاء شبكة من الأزرار للسور
-        surahs_list = get_surah_refs()
-        cols_per_row = 6
+            # إنشاء شبكة من الأزرار للسور
+            surahs_list = get_surah_refs()
+            cols_per_row = 6
 
-        for row_start in range(0, len(surahs_list), cols_per_row):
-            cols = st.columns(cols_per_row)
-            for i, col in enumerate(cols):
-                idx = row_start + i
-                if idx < len(surahs_list):
-                    surah_no, surah_name, ayah_count = surahs_list[idx][0], surahs_list[idx][1], surahs_list[idx][2]
-                    with col:
-                        if st.button(f"{surah_no}. {surah_name}",
-                                   use_container_width=True,
-                                   key=f"quick_surah_{sid}_{surah_no}",
-                                   help=f"{ayah_count} آية"):
-                            open_surah_dialog(sid, surah_no)
+            for row_start in range(0, len(surahs_list), cols_per_row):
+                cols = st.columns(cols_per_row)
+                for i, col in enumerate(cols):
+                    idx = row_start + i
+                    if idx < len(surahs_list):
+                        surah_no, surah_name, ayah_count = surahs_list[idx][0], surahs_list[idx][1], surahs_list[idx][2]
+                        with col:
+                            if st.button(f"{surah_no}. {surah_name}",
+                                       use_container_width=True,
+                                       key=f"quick_surah_{sid}_{surah_no}",
+                                       help=f"{ayah_count} آية"):
+                                open_surah_dialog(sid, surah_no)
 
-    with st.expander("📗 إضافة حفظ بالجزء/الصفحات", expanded=False):
-        st.caption("اختر الجزء لفتح نافذة إضافة الحفظ")
+        with st.expander("📗 إضافة حفظ بالجزء/الصفحات", expanded=False):
+            st.caption("اختر الجزء لفتح نافذة إضافة الحفظ")
 
-        # إنشاء أزرار للأجزاء
-        juz_refs = get_juz_refs()
-        cols = st.columns(6)
+            # إنشاء أزرار للأجزاء
+            juz_refs = get_juz_refs()
+            cols = st.columns(6)
 
-        for i, (juz_num, start_page, end_page) in enumerate(juz_refs):
-            with cols[i % 6]:
-                if st.button(f"جزء {juz_num}",
-                           use_container_width=True,
-                           key=f"quick_juz_{sid}_{juz_num}",
-                           help=f"الصفحات {start_page}-{end_page}"):
-                    open_juz_dialog(sid, juz_num)
+            for i, (juz_num, start_page, end_page) in enumerate(juz_refs):
+                with cols[i % 6]:
+                    if st.button(f"جزء {juz_num}",
+                               use_container_width=True,
+                               key=f"quick_juz_{sid}_{juz_num}",
+                               help=f"الصفحات {start_page}-{end_page}"):
+                        open_juz_dialog(sid, juz_num)
 
     # ---------- الأهداف ----------
     with st.expander("🎯 أهداف الطالب"):
-        st.markdown("### ➕ إضافة هدف")
-        colX1, colX2, colX3 = st.columns(3)
-        with colX1:
-            from core.models import AR_CATEGORY, AR_PERIODICITY, AR_TARGET_KIND, _to_code_target_kind, _to_code_periodicity
-            ar_category = st.selectbox("تصنيف الهدف", list(
-                AR_CATEGORY.values()), index=0, key=f"g_ar_category_{sid}")
-            ar_period = st.selectbox("دورية الهدف", list(
-                AR_PERIODICITY.values()), index=0, key=f"g_ar_period_{sid}")
-        with colX2:
-            ar_kind = st.selectbox("نوع الهدف", list(
-                AR_TARGET_KIND.values()), index=0, key=f"g_ar_kind_{sid}")
-            per_qty = st.number_input(
-                "كمية الجلسة الواحدة (للتكراري)", min_value=0, step=1, value=0, key=f"g_perqty_{sid}")
-        with colX3:
-            note_txt = st.text_input("ملاحظة (اختياري)", key=f"g_note_{sid}")
+        if not is_visitor:
+            st.markdown("### ➕ إضافة هدف")
+            colX1, colX2, colX3 = st.columns(3)
+            with colX1:
+                from core.models import AR_CATEGORY, AR_PERIODICITY, AR_TARGET_KIND, _to_code_target_kind, _to_code_periodicity
+                ar_category = st.selectbox("تصنيف الهدف", list(
+                    AR_CATEGORY.values()), index=0, key=f"g_ar_category_{sid}")
+                ar_period = st.selectbox("دورية الهدف", list(
+                    AR_PERIODICITY.values()), index=0, key=f"g_ar_period_{sid}")
+            with colX2:
+                ar_kind = st.selectbox("نوع الهدف", list(
+                    AR_TARGET_KIND.values()), index=0, key=f"g_ar_kind_{sid}")
+                per_qty = st.number_input(
+                    "كمية الجلسة الواحدة (للتكراري)", min_value=0, step=1, value=0, key=f"g_perqty_{sid}")
+            with colX3:
+                note_txt = st.text_input("ملاحظة (اختياري)", key=f"g_note_{sid}")
 
-        code_kind = _to_code_target_kind(ar_kind)
-        code_period = _to_code_periodicity(ar_period)
+            code_kind = _to_code_target_kind(ar_kind)
+            code_period = _to_code_periodicity(ar_period)
 
-        # حقول الهدف حسب نوعه
-        if code_period == "once":
-            if code_kind == "pages":
-                p_from = st.number_input(
-                    "من الصفحة", min_value=1, max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=1, key=f"g_once_p_from_{sid}")
-                p_to = st.number_input(
-                    "إلى الصفحة", min_value=1, max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=1, key=f"g_once_p_to_{sid}")
-                surah_id = from_ayah = to_ayah = None
+            # حقول الهدف حسب نوعه
+            if code_period == "once":
+                if code_kind == "pages":
+                    p_from = st.number_input(
+                        "من الصفحة", min_value=1, max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=1, key=f"g_once_p_from_{sid}")
+                    p_to = st.number_input(
+                        "إلى الصفحة", min_value=1, max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=1, key=f"g_once_p_to_{sid}")
+                    surah_id = from_ayah = to_ayah = None
+                else:
+                    surah_refs = get_surah_refs()
+
+                    def _fmt_surah(i: int) -> str:
+                        sid_, name_, ac_, *_ = surah_refs[i]
+                        return f"{sid_:03d} — {name_} ({ac_} آية)"
+                    sel_idx = st.selectbox("السورة", list(
+                        range(len(surah_refs))), format_func=_fmt_surah, key=f"g_once_surah_idx_{sid}")
+                    sel_sid, _, sel_ac, *_ = surah_refs[sel_idx]
+                    surah_id = sel_sid
+                    from_ayah = st.number_input("من الآية", min_value=1, max_value=int(
+                        sel_ac), step=1, value=1, key=f"g_once_a_from_{sid}")
+                    to_ayah = st.number_input("إلى الآية", min_value=1, max_value=int(
+                        sel_ac), step=1, value=1, key=f"g_once_a_to_{sid}")
+                    p_from = p_to = None
+
+                due_date = st.date_input(
+                    "تاريخ الإنجاز", value=date.today(), key=f"g_once_due_{sid}").isoformat()
+                start_date = date.today().isoformat()
+                end_date = None
+
             else:
-                surah_refs = get_surah_refs()
+                start_date = st.date_input(
+                    "تاريخ البداية", value=date.today(), key=f"g_rec_start_{sid}").isoformat()
+                end_date = st.date_input("تاريخ النهاية", value=date.today(
+                ) + timedelta(days=30), key=f"g_rec_end_{sid}").isoformat()
+                due_date = None
+                if code_kind == "pages":
+                    p_from = st.number_input("بداية القسم (صفحة)", min_value=1,
+                                             max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=1, key=f"g_rec_p_from_{sid}")
+                    p_to = st.number_input("نهاية القسم (صفحة)", min_value=1,
+                                           max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=20, key=f"g_rec_p_to_{sid}")
+                    surah_id = from_ayah = to_ayah = None
+                else:
+                    surah_refs = get_surah_refs()
 
-                def _fmt_surah(i: int) -> str:
-                    sid_, name_, ac_, *_ = surah_refs[i]
-                    return f"{sid_:03d} — {name_} ({ac_} آية)"
-                sel_idx = st.selectbox("السورة", list(
-                    range(len(surah_refs))), format_func=_fmt_surah, key=f"g_once_surah_idx_{sid}")
-                sel_sid, _, sel_ac, *_ = surah_refs[sel_idx]
-                surah_id = sel_sid
-                from_ayah = st.number_input("من الآية", min_value=1, max_value=int(
-                    sel_ac), step=1, value=1, key=f"g_once_a_from_{sid}")
-                to_ayah = st.number_input("إلى الآية", min_value=1, max_value=int(
-                    sel_ac), step=1, value=1, key=f"g_once_a_to_{sid}")
-                p_from = p_to = None
+                    def _fmt_surah(i: int) -> str:
+                        sid_, name_, ac_, *_ = surah_refs[i]
+                        return f"{sid_:03d} — {name_} ({ac_} آية)"
+                    sel_idx = st.selectbox("السورة (لنطاق التكرار)", list(
+                        range(len(surah_refs))), format_func=_fmt_surah, key=f"g_rec_surah_idx_{sid}")
+                    sel_sid, _, sel_ac, *_ = surah_refs[sel_idx]
+                    surah_id = sel_sid
+                    from_ayah = st.number_input("من الآية (بداية القسم)", min_value=1, max_value=int(
+                        sel_ac), step=1, value=1, key=f"g_rec_a_from_{sid}")
+                    to_ayah = st.number_input("إلى الآية (نهاية القسم)", min_value=1, max_value=int(
+                        sel_ac), step=1, value=min(20, int(sel_ac)), key=f"g_rec_a_to_{sid}")
+                    p_from = p_to = None
 
-            due_date = st.date_input(
-                "تاريخ الإنجاز", value=date.today(), key=f"g_once_due_{sid}").isoformat()
-            start_date = date.today().isoformat()
-            end_date = None
-
-        else:
-            start_date = st.date_input(
-                "تاريخ البداية", value=date.today(), key=f"g_rec_start_{sid}").isoformat()
-            end_date = st.date_input("تاريخ النهاية", value=date.today(
-            ) + timedelta(days=30), key=f"g_rec_end_{sid}").isoformat()
-            due_date = None
-            if code_kind == "pages":
-                p_from = st.number_input("بداية القسم (صفحة)", min_value=1,
-                                         max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=1, key=f"g_rec_p_from_{sid}")
-                p_to = st.number_input("نهاية القسم (صفحة)", min_value=1,
-                                       max_value=TOTAL_QURAN_PAGES_NOMINAL, step=1, value=20, key=f"g_rec_p_to_{sid}")
-                surah_id = from_ayah = to_ayah = None
-            else:
-                surah_refs = get_surah_refs()
-
-                def _fmt_surah(i: int) -> str:
-                    sid_, name_, ac_, *_ = surah_refs[i]
-                    return f"{sid_:03d} — {name_} ({ac_} آية)"
-                sel_idx = st.selectbox("السورة (لنطاق التكرار)", list(
-                    range(len(surah_refs))), format_func=_fmt_surah, key=f"g_rec_surah_idx_{sid}")
-                sel_sid, _, sel_ac, *_ = surah_refs[sel_idx]
-                surah_id = sel_sid
-                from_ayah = st.number_input("من الآية (بداية القسم)", min_value=1, max_value=int(
-                    sel_ac), step=1, value=1, key=f"g_rec_a_from_{sid}")
-                to_ayah = st.number_input("إلى الآية (نهاية القسم)", min_value=1, max_value=int(
-                    sel_ac), step=1, value=min(20, int(sel_ac)), key=f"g_rec_a_to_{sid}")
-                p_from = p_to = None
-
-        if st.button("حفظ الهدف", key=f"g_save_btn_{sid}"):
-            try:
-                with closing(get_conn()) as conn:
-                    c = conn.cursor()
-                    c.execute(
-                        """
-                        INSERT INTO goals(
-                            student_id, category, periodicity, target_kind,
-                            page_from, page_to, surah_id, from_ayah, to_ayah,
-                            per_session_qty, start_date, due_date, end_date,
-                            status, note, goal_type, target, period
-                        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                        """,
-                        (
-                            sid,
-                            # نعيد استخدام المحولات العربية من models
-                            __import__("core.models").models._to_code_category(
-                                ar_category),
-                            code_period,
-                            code_kind,
-                            int(p_from) if p_from else None,
-                            int(p_to) if p_to else None,
-                            int(surah_id) if surah_id else None,
-                            int(from_ayah) if from_ayah else None,
-                            int(to_ayah) if to_ayah else None,
-                            int(per_qty or 0),
-                            start_date,
-                            due_date,
-                            end_date,
-                            "pending",
-                            (note_txt or "").strip(),
-                            ("pages" if code_kind == "pages" else "surah"),
+            if st.button("حفظ الهدف", key=f"g_save_btn_{sid}"):
+                try:
+                    with closing(get_conn()) as conn:
+                        c = conn.cursor()
+                        c.execute(
+                            """
+                            INSERT INTO goals(
+                                student_id, category, periodicity, target_kind,
+                                page_from, page_to, surah_id, from_ayah, to_ayah,
+                                per_session_qty, start_date, due_date, end_date,
+                                status, note, goal_type, target, period
+                            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                            """,
                             (
-                                (int(p_to or 0) - int(p_from or 0) + 1)
-                                if code_kind == "pages" and p_from and p_to
-                                else (
-                                    int(to_ayah or 0) - int(from_ayah or 0) + 1
-                                    if code_kind == "ayahs" and from_ayah and to_ayah
-                                    else 0
-                                )
+                                sid,
+                                # نعيد استخدام المحولات العربية من models
+                                __import__("core.models").models._to_code_category(
+                                    ar_category),
+                                code_period,
+                                code_kind,
+                                int(p_from) if p_from else None,
+                                int(p_to) if p_to else None,
+                                int(surah_id) if surah_id else None,
+                                int(from_ayah) if from_ayah else None,
+                                int(to_ayah) if to_ayah else None,
+                                int(per_qty or 0),
+                                start_date,
+                                due_date,
+                                end_date,
+                                "pending",
+                                (note_txt or "").strip(),
+                                ("pages" if code_kind == "pages" else "surah"),
+                                (
+                                    (int(p_to or 0) - int(p_from or 0) + 1)
+                                    if code_kind == "pages" and p_from and p_to
+                                    else (
+                                        int(to_ayah or 0) - int(from_ayah or 0) + 1
+                                        if code_kind == "ayahs" and from_ayah and to_ayah
+                                        else 0
+                                    )
+                                ),
+                                ("weekly" if code_period == "weekly" else "monthly"),
                             ),
-                            ("weekly" if code_period == "weekly" else "monthly"),
-                        ),
-                    )
-                    conn.commit()
-                st.success("✅ تمت إضافة الهدف بنجاح.")
-                st.rerun()
-            except Exception as e:
-                st.error(f"تعذّر حفظ الهدف: {e}")
+                        )
+                        conn.commit()
+                    st.success("✅ تمت إضافة الهدف بنجاح.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"تعذّر حفظ الهدف: {e}")
 
         # جدول الأهداف الحالية
         st.markdown("---")
@@ -846,6 +854,7 @@ def page_main():
         ) in rows:
             view.append(
                 {
+                    "حذف": False,
                     "ID": gid,
                     "التصنيف": AR_CATEGORY.get(cat, cat),
                     "الدورية": AR_PERIODICITY.get(per, per),
@@ -867,57 +876,91 @@ def page_main():
 
         dfG = pd.DataFrame(view)
         if not dfG.empty:
-            # زر الفحص التلقائي للأهداف
-            col_check, col_spacer = st.columns([1, 3])
-            with col_check:
-                if st.button("🔍 فحص الأهداف تلقائيًا", key=f"auto_check_goals_{sid}"):
-                    from core.models import auto_check_goals
-                    updated = auto_check_goals(sid)
-                    if updated > 0:
-                        st.success(f"✅ تم إنجاز {updated} هدف!")
-                        st.rerun()
-                    else:
-                        st.info("لا توجد أهداف جديدة مكتملة.")
+            if not is_visitor:
+                # زر الفحص التلقائي للأهداف
+                col_check, col_spacer = st.columns([1, 3])
+                with col_check:
+                    if st.button("🔍 فحص الأهداف تلقائيًا", key=f"auto_check_goals_{sid}"):
+                        from core.models import auto_check_goals
+                        updated = auto_check_goals(sid)
+                        if updated > 0:
+                            st.success(f"✅ تم إنجاز {updated} هدف!")
+                            st.rerun()
+                        else:
+                            st.info("لا توجد أهداف جديدة مكتملة.")
 
-            edited = st.data_editor(
-                dfG,
-                use_container_width=True,
-                num_rows="fixed",
-                column_config={
-                    "الحالة": st.column_config.SelectboxColumn(
-                        options=["ليس بعد", "تم", "لم ينجز"]
-                    )
-                },
-                disabled=[c for c in dfG.columns if c not in (
-                    "الحالة", "ملاحظة")],
-                key=f"goals_editor_{sid}",
-            )
+                edited = st.data_editor(
+                    dfG,
+                    use_container_width=True,
+                    num_rows="fixed",
+                    column_config={
+                        "حذف": st.column_config.CheckboxColumn(
+                            label="حذف",
+                            help="اختر الأهداف المراد حذفها",
+                            default=False,
+                        ),
+                        "الحالة": st.column_config.SelectboxColumn(
+                            options=["ليس بعد", "تم", "لم ينجز"]
+                        )
+                    },
+                    disabled=[c for c in dfG.columns if c not in (
+                        "حذف", "الحالة", "ملاحظة")],
+                    key=f"goals_editor_{sid}",
+                )
 
-            if st.button("💾 حفظ حالة الأهداف", key=f"g_save_status_btn_{sid}"):
-                try:
-                    with closing(get_conn()) as conn:
-                        c = conn.cursor()
+                col_save, col_delete = st.columns([1, 1])
+                with col_save:
+                    if st.button("💾 حفظ حالة الأهداف", key=f"g_save_status_btn_{sid}", use_container_width=True):
+                        try:
+                            with closing(get_conn()) as conn:
+                                c = conn.cursor()
+                                for _, row in edited.iterrows():
+                                    gid = int(row["ID"])
+                                    new_status = _goal_status_from_ar(row["الحالة"])
+                                    note = (row.get("ملاحظة", "") or "").strip()
+                                    ach = (
+                                        datetime.now().isoformat(timespec="seconds")
+                                        if new_status == "done"
+                                        else None
+                                    )
+                                    c.execute(
+                                        """
+                                        UPDATE goals SET status=?, achieved_at=?, note=?
+                                        WHERE id=?
+                                        """,
+                                        (new_status, ach, note, gid),
+                                    )
+                                conn.commit()
+                            st.success("✅ تم حفظ الحالات.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"تعذّر الحفظ: {e}")
+
+                with col_delete:
+                    if st.button("🗑️ حذف المحدد", key=f"g_delete_btn_{sid}", use_container_width=True):
+                        # جمع الأهداف المحددة للحذف
+                        to_delete = []
                         for _, row in edited.iterrows():
-                            gid = int(row["ID"])
-                            new_status = _goal_status_from_ar(row["الحالة"])
-                            note = (row.get("ملاحظة", "") or "").strip()
-                            ach = (
-                                datetime.now().isoformat(timespec="seconds")
-                                if new_status == "done"
-                                else None
-                            )
-                            c.execute(
-                                """
-                                UPDATE goals SET status=?, achieved_at=?, note=?
-                                WHERE id=?
-                                """,
-                                (new_status, ach, note, gid),
-                            )
-                        conn.commit()
-                    st.success("✅ تم حفظ الحالات.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"تعذّر الحفظ: {e}")
+                            if row.get("حذف", False):
+                                to_delete.append(int(row["ID"]))
+
+                        if to_delete:
+                            try:
+                                with closing(get_conn()) as conn:
+                                    c = conn.cursor()
+                                    for gid in to_delete:
+                                        c.execute("DELETE FROM goals WHERE id=?", (gid,))
+                                    conn.commit()
+                                st.success(f"✅ تم حذف {len(to_delete)} هدف.")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"تعذّر الحذف: {e}")
+                        else:
+                            st.warning("⚠️ لم يتم تحديد أي هدف للحذف.")
+            else:
+                # للزوار: عرض الجدول للقراءة فقط (بدون عمود الحذف)
+                dfG_visitor = dfG.drop(columns=["حذف"])
+                st.dataframe(dfG_visitor, use_container_width=True, height=300)
         else:
             st.caption("لا توجد أهداف بعد.")
 
@@ -935,23 +978,24 @@ def page_main():
             )
         st.dataframe(dfR, use_container_width=True, height=220)
 
-        with st.form(f"main_reward_add_{sid}", clear_on_submit=True):
-            pts = st.number_input(
-                "نقاط", min_value=0, step=1, value=10, key=f"main_reward_points_{sid}")
-            badge = st.text_input("اسم الوسام (اختياري)",
-                                  value="مثابر", key=f"main_reward_badge_{sid}")
-            note = st.text_input("ملاحظة", value="",
-                                 key=f"main_reward_note_{sid}")
-            if st.form_submit_button("منح مكافأة"):
-                with closing(get_conn()) as conn:
-                    c = conn.cursor()
-                    c.execute(
-                        "INSERT INTO rewards(student_id, points, badge, note) VALUES(?,?,?,?)",
-                        (sid, int(pts), badge.strip(), note.strip()),
-                    )
-                    conn.commit()
-                st.success("✅ تم منح المكافأة.")
-                st.rerun()
+        if not is_visitor:
+            with st.form(f"main_reward_add_{sid}", clear_on_submit=True):
+                pts = st.number_input(
+                    "نقاط", min_value=0, step=1, value=10, key=f"main_reward_points_{sid}")
+                badge = st.text_input("اسم الوسام (اختياري)",
+                                      value="مثابر", key=f"main_reward_badge_{sid}")
+                note = st.text_input("ملاحظة", value="",
+                                     key=f"main_reward_note_{sid}")
+                if st.form_submit_button("منح مكافأة"):
+                    with closing(get_conn()) as conn:
+                        c = conn.cursor()
+                        c.execute(
+                            "INSERT INTO rewards(student_id, points, badge, note) VALUES(?,?,?,?)",
+                            (sid, int(pts), badge.strip(), note.strip()),
+                        )
+                        conn.commit()
+                    st.success("✅ تم منح المكافأة.")
+                    st.rerun()
 
     # ---------- التقرير المطبوع ----------
     if st.session_state.get("main_report_student") != sid:

@@ -422,23 +422,27 @@ def get_active_goals_map(student_id: int) -> Dict[str, set]:
     """
     جلب خريطة الأهداف النشطة (pending فقط) للطالب.
     يعيد قاموس بمفاتيح 'pages' و 'surahs' تحتوي على مجموعات الأرقام المستهدفة.
+    'surahs' يحتوي على قاموس: {surah_id: [(from_ayah, to_ayah), ...]}
     """
-    goals_map = {"pages": set(), "surahs": set()}
+    goals_map = {"pages": set(), "surahs": {}}
 
     with closing(get_conn()) as conn:
         c = conn.cursor()
         c.execute("""
-            SELECT target_kind, page_from, page_to, surah_id
+            SELECT target_kind, page_from, page_to, surah_id, from_ayah, to_ayah
             FROM goals
             WHERE student_id=? AND status='pending'
         """, (student_id,))
 
-        for target_kind, page_from, page_to, surah_id in c.fetchall():
+        for target_kind, page_from, page_to, surah_id, from_ayah, to_ayah in c.fetchall():
             if target_kind == "pages" and page_from and page_to:
                 for p in range(page_from, page_to + 1):
                     goals_map["pages"].add(p)
             elif target_kind == "ayahs" and surah_id:
-                goals_map["surahs"].add(surah_id)
+                if surah_id not in goals_map["surahs"]:
+                    goals_map["surahs"][surah_id] = []
+                # إضافة نطاق الآيات (من - إلى)
+                goals_map["surahs"][surah_id].append((from_ayah or 1, to_ayah or 999))
 
     return goals_map
 
