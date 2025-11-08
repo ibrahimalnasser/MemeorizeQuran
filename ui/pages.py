@@ -415,38 +415,6 @@ def page_main():
     st.caption(
         "يمكنك الآن استعراض الحفظ عبر القلب التفاعلي أو إضافة أهداف ومكافآت من الأسفل.")
 
-    # ---------- فتح الحوارات الناتجة عن النقر على القلب ----------
-    # التحقق من النقر التفاعلي (interactive mode)
-    if "heart_click" in st.session_state:
-        click_data = st.session_state.pop("heart_click")
-        try:
-            mode = click_data.get("mode")
-            seg = click_data.get("seg")
-            # فتح الحوار المناسب
-            if mode == "surah":
-                open_surah_dialog(sid, seg)
-            elif mode == "juz":
-                open_juz_dialog(sid, seg)
-        except Exception:
-            pass
-
-    # التحقق من معاملات الرابط (للتوافق مع الوضع غير التفاعلي)
-    qp = st.query_params
-    if qp.get("dlg") and qp.get("seg"):
-        dlg = qp.get("dlg")
-        try:
-            seg = int(qp.get("seg"))
-            # مسح معاملات الرابط
-            st.query_params.clear()
-            st.query_params.update({"page": "main", "sid": str(sid)})
-            # فتح الحوار المناسب
-            if dlg == "surah":
-                open_surah_dialog(sid, seg)
-            elif dlg == "juz":
-                open_juz_dialog(sid, seg)
-        except Exception:
-            pass
-
     # ---------- إعدادات عرض القلب ----------
     with st.expander("❤️ القلب التفاعلي (الإعدادات + الرسم)", expanded=True):
         left, right = st.columns([3, 2])
@@ -688,6 +656,21 @@ def page_main():
                 st.session_state["heart_click"] = click_data
         else:
             st.info("اختر وضع العرض المطلوب.")
+
+    # ---------- فتح الحوارات الناتجة عن النقر على القلب ----------
+    # التحقق من النقر التفاعلي (interactive mode)
+    if "heart_click" in st.session_state:
+        click_data = st.session_state.pop("heart_click")
+        try:
+            mode = click_data.get("mode")
+            seg = click_data.get("seg")
+            # فتح الحوار المناسب
+            if mode == "surah":
+                open_surah_dialog(sid, seg)
+            elif mode == "juz":
+                open_juz_dialog(sid, seg)
+        except Exception:
+            pass
 
     # ---------- الأهداف ----------
     with st.expander("🎯 أهداف الطالب"):
