@@ -56,6 +56,7 @@ from core.models import (
 )
 
 from ui.heart import make_heart_svg
+from ui.interactive_heart import render_interactive_heart
 
 
 # ================================
@@ -415,6 +416,21 @@ def page_main():
         "يمكنك الآن استعراض الحفظ عبر القلب التفاعلي أو إضافة أهداف ومكافآت من الأسفل.")
 
     # ---------- فتح الحوارات الناتجة عن النقر على القلب ----------
+    # التحقق من النقر التفاعلي (interactive mode)
+    if "heart_click" in st.session_state:
+        click_data = st.session_state.pop("heart_click")
+        try:
+            mode = click_data.get("mode")
+            seg = click_data.get("seg")
+            # فتح الحوار المناسب
+            if mode == "surah":
+                open_surah_dialog(sid, seg)
+            elif mode == "juz":
+                open_juz_dialog(sid, seg)
+        except Exception:
+            pass
+
+    # التحقق من معاملات الرابط (للتوافق مع الوضع غير التفاعلي)
     qp = st.query_params
     if qp.get("dlg") and qp.get("seg"):
         dlg = qp.get("dlg")
@@ -565,8 +581,10 @@ def page_main():
                 )
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=False)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["heart_click"] = click_data
 
         elif mode == "حسب الأجزاء (30)":
             ratios = progress_by_juz(sid)
@@ -612,8 +630,10 @@ def page_main():
 
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=False)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["heart_click"] = click_data
 
         elif mode == "جزء معيّن (صفحات)":
             refs = get_juz_refs()
@@ -634,8 +654,10 @@ def page_main():
 
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="juz", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=False)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["heart_click"] = click_data
 
         elif mode == "سورة معيّنة (آيات)":
             sur_refs = get_surah_refs()
@@ -660,8 +682,10 @@ def page_main():
 
             # عرض القلب مع روابط قابلة للنقر
             svg = make_heart_svg(segs, scale=zoom, mode="surah", sid=sid,
-                                 label_position=label_position, label_density=label_density, use_interactive=False)
-            st.markdown(svg, unsafe_allow_html=True)
+                                 label_position=label_position, label_density=label_density, use_interactive=True)
+            click_data = render_interactive_heart(svg, height=600)
+            if click_data:
+                st.session_state["heart_click"] = click_data
         else:
             st.info("اختر وضع العرض المطلوب.")
 
