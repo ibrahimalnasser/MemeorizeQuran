@@ -30,22 +30,21 @@ def render_interactive_heart(svg_content: str, height: int = 600):
             html, body {{
                 margin: 0 !important;
                 padding: 0 !important;
-                overflow: hidden;
+                overflow: visible !important;
                 width: 100%;
                 height: 100%;
+                background: transparent;
             }}
             body {{
                 display: flex;
                 justify-content: center;
-                align-items: flex-start;
-                padding-top: 0 !important;
+                align-items: center;
+                min-height: 100vh;
             }}
             svg {{
                 display: block;
                 margin: 0 auto;
-                max-width: 100%;
-                max-height: 100%;
-                width: auto;
+                width: 100%;
                 height: auto;
             }}
         </style>

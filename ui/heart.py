@@ -116,12 +116,13 @@ def make_heart_svg(
     <style>
       .heart-wrap {{
         width:100%;
-        margin:{top_shift}px auto {bottom_pad}px auto;
-        display:flex; justify-content:center; align-items:flex-start;
+        margin:0 auto;
+        padding:0;
+        display:flex; justify-content:center; align-items:center;
         overflow:visible; position:relative; z-index:0; pointer-events:none;
       }}
       .heart-wrap svg {{
-        width:100%; height:auto; transform:scale({scale}); transform-origin:50% 50%;
+        width:100%; height:auto; transform:scale({scale}); transform-origin:center center;
         display:block; overflow:visible; pointer-events:none;
       }}
       .heart-wrap .hit, .heart-wrap a, .heart-wrap text {{ pointer-events:auto; }}
@@ -133,7 +134,7 @@ def make_heart_svg(
     svg = [
         css,
         '<div class="heart-wrap">',
-        '<svg viewBox="-130 -130 260 260" preserveAspectRatio="xMidYMid meet">',
+        '<svg viewBox="-110 -110 220 220" preserveAspectRatio="xMidYMid meet">',
         '<defs>',
         f'<clipPath id="heartClip"><path d="{HEART_PATH}"/></clipPath>',
         '</defs>',

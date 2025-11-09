@@ -479,7 +479,7 @@ def page_main():
                 "التكبير",
                 0.5,
                 1.6,
-                st.session_state.get("ui_zoom", 0.65),
+                st.session_state.get("ui_zoom", 0.90),
                 0.05,
                 format="%.2f",
                 label_visibility="collapsed",
